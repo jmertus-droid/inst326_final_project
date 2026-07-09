@@ -4,10 +4,15 @@ CareerPath Application Tracker
 This program helps users track job and internship applications.
 Users can add applications, view saved applications, filter by status,
 and see a simple priority score.
+
+Applications are saved to and loaded from a JSON file.
 """
 
+import json
 from datetime import datetime, date
 
+
+DATA_FILE = "applications.json"
 
 VALID_STATUSES = [
     "Interested",
@@ -22,7 +27,17 @@ VALID_STATUSES = [
 class Application:
     """Represents one job or internship application."""
 
-    def __init__(self, company, role, deadline, status, required_skills, user_skills, interest_level, notes):
+    def __init__(
+        self,
+        company,
+        role,
+        deadline,
+        status,
+        required_skills,
+        user_skills,
+        interest_level,
+        notes
+    ):
         self.company = company
         self.role = role
         self.deadline = deadline
@@ -81,6 +96,20 @@ class Application:
                 missing_skills.append(skill)
 
         return missing_skills
+
+    def to_dict(self):
+        """Converts an Application object into a dictionary."""
+
+        return {
+            "company": self.company,
+            "role": self.role,
+            "deadline": self.deadline.strftime("%Y-%m-%d"),
+            "status": self.status,
+            "required_skills": self.required_skills,
+            "user_skills": self.user_skills,
+            "interest_level": self.interest_level,
+            "notes": self.notes
+        }
 
     def display(self):
         """Displays the application information."""
@@ -198,6 +227,57 @@ def get_skills(prompt):
     return cleaned_skills
 
 
+def save_applications(applications):
+    """Saves all applications to a JSON file."""
+
+    application_data = []
+
+    for application in applications:
+        application_data.append(application.to_dict())
+
+    with open(DATA_FILE, "w") as file:
+        json.dump(application_data, file, indent=4)
+
+    print("Applications saved.")
+
+
+def load_applications():
+    """Loads applications from a JSON file."""
+
+    applications = []
+
+    try:
+        with open(DATA_FILE, "r") as file:
+            application_data = json.load(file)
+
+            for item in application_data:
+                deadline = datetime.strptime(
+                    item["deadline"],
+                    "%Y-%m-%d"
+                ).date()
+
+                application = Application(
+                    item["company"],
+                    item["role"],
+                    deadline,
+                    item["status"],
+                    item["required_skills"],
+                    item["user_skills"],
+                    item["interest_level"],
+                    item["notes"]
+                )
+
+                applications.append(application)
+
+    except FileNotFoundError:
+        pass
+
+    except json.JSONDecodeError:
+        print("Saved file could not be read. Starting with an empty tracker.")
+
+    return applications
+
+
 def add_application(applications):
     """Adds a new job or internship application."""
 
@@ -271,7 +351,7 @@ def filter_by_status(applications):
 def main():
     """Runs the CareerPath Application Tracker program."""
 
-    applications = []
+    applications = load_applications()
 
     while True:
         display_menu()
@@ -279,15 +359,22 @@ def main():
 
         if choice == "1":
             add_application(applications)
+            save_applications(applications)
+
         elif choice == "2":
             view_applications(applications)
+
         elif choice == "3":
             filter_by_status(applications)
+
         elif choice == "4":
+            save_applications(applications)
             print("\nGoodbye.")
             break
+
         else:
             print("Invalid choice. Please choose 1, 2, 3, or 4.")
 
 
-main()
+if __name__ == "__main__":
+    main()
