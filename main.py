@@ -3,7 +3,8 @@ CareerPath Application Tracker
 
 This program helps users track job and internship applications.
 Users can add applications, view saved applications, filter by status,
-and see a simple priority score.
+update application statuses, delete applications, and see a simple
+priority score.
 
 Applications are saved to and loaded from a JSON file.
 """
@@ -142,7 +143,9 @@ def display_menu():
     print("1. Add application")
     print("2. View all applications")
     print("3. Filter applications by status")
-    print("4. Quit")
+    print("4. Update application status")
+    print("5. Delete application")
+    print("6. Quit")
 
 
 def get_non_empty_input(prompt):
@@ -348,6 +351,92 @@ def filter_by_status(applications):
         print("No applications found with that status.")
 
 
+def update_application_status(applications):
+    """Updates the status of a selected application."""
+
+    if len(applications) == 0:
+        print("\nNo applications saved yet.")
+        return
+
+    print("\nSelect an application to update:")
+
+    for index, application in enumerate(applications, start=1):
+        print(
+            f"{index}. {application.company} - "
+            f"{application.role} ({application.status})"
+        )
+
+    while True:
+        choice = input("Choose an application number: ").strip()
+
+        if choice.isdigit():
+            choice = int(choice)
+
+            if 1 <= choice <= len(applications):
+                selected_application = applications[choice - 1]
+
+                print(
+                    f"\nCurrent status for {selected_application.company} - "
+                    f"{selected_application.role}: "
+                    f"{selected_application.status}"
+                )
+
+                new_status = get_status()
+                selected_application.status = new_status
+
+                print("\nApplication status updated successfully.")
+                return
+
+        print("Invalid choice. Please choose a valid application number.")
+
+
+def delete_application(applications):
+    """Deletes a selected application."""
+
+    if len(applications) == 0:
+        print("\nNo applications saved yet.")
+        return
+
+    print("\nSelect an application to delete:")
+
+    for index, application in enumerate(applications, start=1):
+        print(
+            f"{index}. {application.company} - "
+            f"{application.role} ({application.status})"
+        )
+
+    while True:
+        choice = input("Choose an application number: ").strip()
+
+        if choice.isdigit():
+            choice = int(choice)
+
+            if 1 <= choice <= len(applications):
+                selected_application = applications[choice - 1]
+
+                print(
+                    f"\nYou selected: {selected_application.company} - "
+                    f"{selected_application.role}"
+                )
+
+                confirm = input(
+                    "Are you sure you want to delete this application? (yes/no): "
+                ).strip().lower()
+
+                if confirm == "yes":
+                    applications.pop(choice - 1)
+                    print("\nApplication deleted successfully.")
+                    return
+                elif confirm == "no":
+                    print("\nDelete canceled.")
+                    return
+                else:
+                    print("Invalid response. Delete canceled.")
+                    return
+
+        print("Invalid choice. Please choose a valid application number.")
+
+
 def main():
     """Runs the CareerPath Application Tracker program."""
 
@@ -368,12 +457,20 @@ def main():
             filter_by_status(applications)
 
         elif choice == "4":
+            update_application_status(applications)
+            save_applications(applications)
+
+        elif choice == "5":
+            delete_application(applications)
+            save_applications(applications)
+
+        elif choice == "6":
             save_applications(applications)
             print("\nGoodbye.")
             break
 
         else:
-            print("Invalid choice. Please choose 1, 2, 3, or 4.")
+            print("Invalid choice. Please choose 1, 2, 3, 4, 5, or 6.")
 
 
 if __name__ == "__main__":
